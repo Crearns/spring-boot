@@ -41,6 +41,9 @@ import org.springframework.core.env.ConfigurableEnvironment;
  * consider setting the {@code LANG} environment variable to an explicit
  * character-encoding value (e.g. "en_GB.UTF-8").
  *
+ * 在Spring Boot 环境准备完成以后运行，获取环境中的系统环境参数，检测当前系统环境的 file.encoding 和 spring.mandatory-file-encoding 设置的值是否一样，如果不一样则抛出异常；
+ * 如果不配置 spring.mandatory-file-encoding 则不检查。
+ *
  * @author Dave Syer
  * @author Madhura Bhave
  */
@@ -58,9 +61,12 @@ public class FileEncodingApplicationListener
 	@Override
 	public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
 		ConfigurableEnvironment environment = event.getEnvironment();
+		// 如果未配置，则不进行检查
 		if (!environment.containsProperty("spring.mandatory-file-encoding")) {
 			return;
 		}
+		// 比对系统变量的 `file.encoding` ，和环境变量的 `spring.mandatory-file-encoding` 。
+		// 如果不一致，抛出 IllegalStateException 异常
 		String encoding = System.getProperty("file.encoding");
 		String desired = environment.getProperty("spring.mandatory-file-encoding");
 		if (encoding != null && !desired.equalsIgnoreCase(encoding)) {

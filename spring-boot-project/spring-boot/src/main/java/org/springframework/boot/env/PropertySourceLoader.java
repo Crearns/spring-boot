@@ -33,12 +33,15 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
 public interface PropertySourceLoader {
 
 	/**
+	 *  获得可以处理的配置文件的后缀
 	 * Returns the file extensions that the loader supports (excluding the '.').
 	 * @return the file extensions
 	 */
 	String[] getFileExtensions();
 
 	/**
+	 * 加载指定配置文件，返回 PropertySource 数组
+	 *
 	 * Load the resource into one or more property sources. Implementations may either
 	 * return a list containing a single source, or in the case of a multi-document format
 	 * such as yaml a source for each document in the resource.

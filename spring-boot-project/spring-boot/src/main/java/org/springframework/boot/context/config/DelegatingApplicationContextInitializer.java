@@ -43,22 +43,32 @@ public class DelegatingApplicationContextInitializer implements
 
 	// NOTE: Similar to org.springframework.web.context.ContextLoader
 
+	/**
+	 * 环境变量配置的属性
+	 */
 	private static final String PROPERTY_NAME = "context.initializer.classes";
 
+	/**
+	 * 默认优先级
+	 */
 	private int order = 0;
 
 	@Override
 	public void initialize(ConfigurableApplicationContext context) {
+		// <1> 获得环境变量配置的 ApplicationContextInitializer 集合们
 		ConfigurableEnvironment environment = context.getEnvironment();
 		List<Class<?>> initializerClasses = getInitializerClasses(environment);
+		// 如果非空，则进行初始化
 		if (!initializerClasses.isEmpty()) {
 			applyInitializerClasses(context, initializerClasses);
 		}
 	}
 
 	private List<Class<?>> getInitializerClasses(ConfigurableEnvironment env) {
+		// 获得环境变量配置的属性
 		String classNames = env.getProperty(PROPERTY_NAME);
 		List<Class<?>> classes = new ArrayList<>();
+		// 拼装成数组，按照 ，分隔
 		if (StringUtils.hasLength(classNames)) {
 			for (String className : StringUtils.tokenizeToStringArray(classNames, ",")) {
 				classes.add(getInitializerClass(className));
@@ -69,6 +79,7 @@ public class DelegatingApplicationContextInitializer implements
 
 	private Class<?> getInitializerClass(String className) throws LinkageError {
 		try {
+			// 获得全类名，对应的类
 			Class<?> initializerClass = ClassUtils.forName(className,
 					ClassUtils.getDefaultClassLoader());
 			Assert.isAssignable(ApplicationContextInitializer.class, initializerClass);
@@ -83,13 +94,16 @@ public class DelegatingApplicationContextInitializer implements
 	private void applyInitializerClasses(ConfigurableApplicationContext context,
 			List<Class<?>> initializerClasses) {
 		Class<?> contextClass = context.getClass();
+		// 遍历 initializerClasses 数组，创建对应的 ApplicationContextInitializer 对象们 ①
 		List<ApplicationContextInitializer<?>> initializers = new ArrayList<>();
 		for (Class<?> initializerClass : initializerClasses) {
 			initializers.add(instantiateInitializer(contextClass, initializerClass));
 		}
+		// 执行 ApplicationContextInitializer 们的初始化逻辑 ②
 		applyInitializers(context, initializers);
 	}
 
+	// 被 ① 处调用
 	private ApplicationContextInitializer<?> instantiateInitializer(Class<?> contextClass,
 			Class<?> initializerClass) {
 		Class<?> requireContextClass = GenericTypeResolver.resolveTypeArgument(
@@ -102,6 +116,7 @@ public class DelegatingApplicationContextInitializer implements
 								+ "context loader [%s]: ",
 						initializerClass.getName(), requireContextClass.getName(),
 						contextClass.getName()));
+		// 创建 ApplicationContextInitializer 对象
 		return (ApplicationContextInitializer<?>) BeanUtils
 				.instantiateClass(initializerClass);
 	}
@@ -109,7 +124,9 @@ public class DelegatingApplicationContextInitializer implements
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void applyInitializers(ConfigurableApplicationContext context,
 			List<ApplicationContextInitializer<?>> initializers) {
+		// 排序，无处不在的排序！
 		initializers.sort(new AnnotationAwareOrderComparator());
+		// 执行初始化逻辑
 		for (ApplicationContextInitializer initializer : initializers) {
 			initializer.initialize(context);
 		}

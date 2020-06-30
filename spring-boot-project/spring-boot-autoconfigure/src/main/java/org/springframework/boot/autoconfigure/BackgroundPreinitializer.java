@@ -44,6 +44,8 @@ import org.springframework.http.converter.support.AllEncompassingFormHttpMessage
  * {@code true} to disable this mechanism and let such initialization happen in the
  * foreground.
  *
+ * 实现后台提前执行耗时的初始化任务。
+ *
  * @author Phillip Webb
  * @author Andy Wilkinson
  * @author Artsiom Yudovin
@@ -62,21 +64,33 @@ public class BackgroundPreinitializer
 	 */
 	public static final String IGNORE_BACKGROUNDPREINITIALIZER_PROPERTY_NAME = "spring.backgroundpreinitializer.ignore";
 
+	/**
+	 * 预初始化任务是否已启动
+	 */
 	private static final AtomicBoolean preinitializationStarted = new AtomicBoolean(
 			false);
 
+	/**
+	 * 预初始化任务的 CountDownLatch 对象，用于实现等待预初始化任务是否完成
+	 */
 	private static final CountDownLatch preinitializationComplete = new CountDownLatch(1);
 
 	@Override
 	public void onApplicationEvent(SpringApplicationEvent event) {
+		// <1> 如果是开启后台预初始化任务，默认情况下开启
+		// 并且，是 ApplicationStartingEvent 事件，说明应用正在启动中
+		// 并且，是多核环境
+		// 并且，预初始化任务未启动
 		if (!Boolean.getBoolean(IGNORE_BACKGROUNDPREINITIALIZER_PROPERTY_NAME)
 				&& event instanceof ApplicationStartingEvent && multipleProcessors()
 				&& preinitializationStarted.compareAndSet(false, true)) {
 			performPreinitialization();
 		}
+		// <2> 如果是 ApplicationReadyEvent 或 ApplicationFailedEvent 事件，说明应用启动成功后失败，则等待预初始化任务完成
 		if ((event instanceof ApplicationReadyEvent
 				|| event instanceof ApplicationFailedEvent)
 				&& preinitializationStarted.get()) {
+			// 通过 CountDownLatch 实现，预初始化任务执行完成。
 			try {
 				preinitializationComplete.await();
 			}
@@ -92,16 +106,19 @@ public class BackgroundPreinitializer
 
 	private void performPreinitialization() {
 		try {
+			// <1> 创建线程
 			Thread thread = new Thread(new Runnable() {
 
 				@Override
 				public void run() {
+					// 安全运行每个初始化任务
 					runSafely(new ConversionServiceInitializer());
 					runSafely(new ValidationInitializer());
 					runSafely(new MessageConverterInitializer());
 					runSafely(new MBeanFactoryInitializer());
 					runSafely(new JacksonInitializer());
 					runSafely(new CharsetInitializer());
+					// <3> 标记 preinitializationComplete 完成
 					preinitializationComplete.countDown();
 				}
 
@@ -115,6 +132,7 @@ public class BackgroundPreinitializer
 				}
 
 			}, "background-preinit");
+			// <2> 启动线程
 			thread.start();
 		}
 		catch (Exception ex) {

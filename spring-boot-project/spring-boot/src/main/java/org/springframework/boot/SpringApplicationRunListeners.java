@@ -43,6 +43,7 @@ class SpringApplicationRunListeners {
 		this.listeners = new ArrayList<>(listeners);
 	}
 
+	//循环遍历获取监听器
 	public void starting() {
 		for (SpringApplicationRunListener listener : this.listeners) {
 			listener.starting();

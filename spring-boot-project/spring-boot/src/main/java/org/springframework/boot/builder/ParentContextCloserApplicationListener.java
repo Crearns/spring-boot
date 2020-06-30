@@ -33,6 +33,8 @@ import org.springframework.util.ObjectUtils;
  * refresh events and grabs the current context from there, and then listens for closed
  * events and propagates it down the hierarchy.
  *
+ * 容器关闭时发出通知，如果父容器关闭，那么子容器也一起关闭。
+ *
  * @author Dave Syer
  * @author Eric Bottard
  */
@@ -40,6 +42,9 @@ public class ParentContextCloserApplicationListener
 		implements ApplicationListener<ParentContextAvailableEvent>,
 		ApplicationContextAware, Ordered {
 
+	/**
+	 * 顺序
+	 */
 	private int order = Ordered.LOWEST_PRECEDENCE - 10;
 
 	private ApplicationContext context;
@@ -60,8 +65,11 @@ public class ParentContextCloserApplicationListener
 	}
 
 	private void maybeInstallListenerInParent(ConfigurableApplicationContext child) {
+		// 如果 child 是当前容器
 		if (child == this.context
+				// 并且父容器是 ConfigurableApplicationContext 类型
 				&& child.getParent() instanceof ConfigurableApplicationContext) {
+			// 向父容器添加监听器，监听父容器的关闭事件
 			ConfigurableApplicationContext parent = (ConfigurableApplicationContext) child
 					.getParent();
 			parent.addApplicationListener(createContextCloserListener(child));

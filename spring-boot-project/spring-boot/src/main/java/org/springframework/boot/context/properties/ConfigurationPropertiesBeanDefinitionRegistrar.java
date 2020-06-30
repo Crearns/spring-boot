@@ -46,7 +46,9 @@ final class ConfigurationPropertiesBeanDefinitionRegistrar {
 
 	public static void register(BeanDefinitionRegistry registry,
 			ConfigurableListableBeanFactory beanFactory, Class<?> type) {
+		// <2.1> 通过 @ConfigurationProperties 注解，获得最后要生成的 BeanDefinition 的名字。格式为 prefix-类全名 or 类全名
 		String name = getName(type);
+		// <2.2> 判断是否已经有该名字的 BeanDefinition 的名字。没有，才进行注册
 		if (!containsBeanDefinition(beanFactory, name)) {
 			registerBeanDefinition(registry, beanFactory, name, type);
 		}
@@ -62,18 +64,22 @@ final class ConfigurationPropertiesBeanDefinitionRegistrar {
 
 	private static boolean containsBeanDefinition(
 			ConfigurableListableBeanFactory beanFactory, String name) {
+		// 判断是否存在 BeanDefinition 。如果有，则返回 true
 		if (beanFactory.containsBeanDefinition(name)) {
 			return true;
 		}
+		// 获得父容器，判断是否存在
 		BeanFactory parent = beanFactory.getParentBeanFactory();
 		if (parent instanceof ConfigurableListableBeanFactory) {
 			return containsBeanDefinition((ConfigurableListableBeanFactory) parent, name);
 		}
+		// 返回 false ，说明不存在
 		return false;
 	}
 
 	private static void registerBeanDefinition(BeanDefinitionRegistry registry,
 			ConfigurableListableBeanFactory beanFactory, String name, Class<?> type) {
+		// 断言，判断该类有 @ConfigurationProperties 注解 防御式编程
 		assertHasAnnotation(type);
 		registry.registerBeanDefinition(name,
 				createBeanDefinition(beanFactory, name, type));
@@ -92,6 +98,7 @@ final class ConfigurationPropertiesBeanDefinitionRegistrar {
 			return ConfigurationPropertiesBeanDefinition.from(beanFactory, name, type);
 		}
 		else {
+			// 创建 GenericBeanDefinition 对象
 			GenericBeanDefinition definition = new GenericBeanDefinition();
 			definition.setBeanClass(type);
 			return definition;

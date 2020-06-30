@@ -167,6 +167,7 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 
 	@Override
 	public WebServer getWebServer(ServletContextInitializer... initializers) {
+		// 这里主要是一些embed tomcat的api调用
 		Tomcat tomcat = new Tomcat();
 		File baseDir = (this.baseDirectory != null) ? this.baseDirectory
 				: createTempDir("tomcat");
@@ -180,7 +181,9 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 		for (Connector additionalConnector : this.additionalTomcatConnectors) {
 			tomcat.getService().addConnector(additionalConnector);
 		}
+		// 准备TomcatEmbeddedContext并设置到tomcat中
 		prepareContext(tomcat.getHost(), initializers);
+		/* 构建TomcatWebServer */
 		return getTomcatWebServer(tomcat);
 	}
 

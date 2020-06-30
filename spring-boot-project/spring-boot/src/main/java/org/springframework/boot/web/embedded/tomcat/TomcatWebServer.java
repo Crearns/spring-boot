@@ -102,9 +102,11 @@ public class TomcatWebServer implements WebServer {
 					}
 				});
 
+				// 启动服务触发初始化侦听器
 				// Start the server to trigger initialization listeners
 				this.tomcat.start();
 
+				// 我们可以直接在主线程中重新抛出失败异常
 				// We can re-throw failure exception directly in the main thread
 				rethrowDeferredStartupExceptions();
 
@@ -116,11 +118,13 @@ public class TomcatWebServer implements WebServer {
 					// Naming is not enabled. Continue
 				}
 
+				// 与Jetty不同，所有Tomcat线程都是守护线程。我们创建一个阻塞非守护线程来避免立即关闭
 				// Unlike Jetty, all Tomcat threads are daemon threads. We create a
 				// blocking non-daemon to stop immediate shutdown
 				startDaemonAwaitThread();
 			}
 			catch (Exception ex) {
+				// 异常停止tomcat
 				stopSilently();
 				throw new WebServerException("Unable to start embedded Tomcat", ex);
 			}
@@ -194,11 +198,14 @@ public class TomcatWebServer implements WebServer {
 				return;
 			}
 			try {
+				/* 添加之前移除的connector */
 				addPreviouslyRemovedConnectors();
 				Connector connector = this.tomcat.getConnector();
 				if (connector != null && this.autoStart) {
+					/* 延迟加载启动 */
 					performDeferredLoadOnStartup();
 				}
+				// 检查connector启动状态是否为失败，失败抛出异常
 				checkThatConnectorsHaveStarted();
 				this.started = true;
 				logger.info("Tomcat started on port(s): " + getPortsDescription(true)

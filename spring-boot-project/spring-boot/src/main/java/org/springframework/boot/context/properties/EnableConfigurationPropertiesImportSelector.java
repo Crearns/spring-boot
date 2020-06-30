@@ -16,6 +16,7 @@
 
 package org.springframework.boot.context.properties;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +38,8 @@ import org.springframework.util.MultiValueMap;
  * configuration. If one is declared, then a bean definition is registered with id equal
  * to the class name (thus an application context usually only contains one
  * {@link ConfigurationProperties} bean of each unique type).
+ *
+ * 将 @EnableConfigurationProperties 注解指定的类，逐个注册成对应的 BeanDefinition 对象。
  *
  * @author Dave Syer
  * @author Christian Dupuis
@@ -69,9 +72,11 @@ class EnableConfigurationPropertiesImportSelector implements ImportSelector {
 		}
 
 		private List<Class<?>> getTypes(AnnotationMetadata metadata) {
+			// 获得 @EnableConfigurationProperties 注解
 			MultiValueMap<String, Object> attributes = metadata
 					.getAllAnnotationAttributes(
 							EnableConfigurationProperties.class.getName(), false);
+			// 获得 value 属性
 			return collectClasses((attributes != null) ? attributes.get("value")
 					: Collections.emptyList());
 		}

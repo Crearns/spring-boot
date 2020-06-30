@@ -49,9 +49,11 @@ public final class ClasspathLoggingApplicationListener
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (logger.isDebugEnabled()) {
+			// 如果是 ApplicationEnvironmentPreparedEvent 事件，说明启动成功，打印成功到 debug 日志中
 			if (event instanceof ApplicationEnvironmentPreparedEvent) {
 				logger.debug("Application started with classpath: " + getClasspath());
 			}
+			// 如果是 ApplicationFailedEvent 事件，说明启动失败，打印失败到 debug 日志中
 			else if (event instanceof ApplicationFailedEvent) {
 				logger.debug(
 						"Application failed to start with classpath: " + getClasspath());
@@ -66,10 +68,12 @@ public final class ClasspathLoggingApplicationListener
 
 	@Override
 	public boolean supportsEventType(ResolvableType resolvableType) {
+		// 使用 ResolvableType 类，可以解析当前传入的参数的泛型，从而后的事件类型
 		Class<?> type = resolvableType.getRawClass();
 		if (type == null) {
 			return false;
 		}
+		// 判断是否需为 ApplicationEnvironmentPreparedEvent 或者 ApplicationFailedEvent 事件
 		return ApplicationEnvironmentPreparedEvent.class.isAssignableFrom(type)
 				|| ApplicationFailedEvent.class.isAssignableFrom(type);
 	}

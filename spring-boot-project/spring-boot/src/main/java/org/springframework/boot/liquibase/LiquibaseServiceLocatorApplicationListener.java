@@ -40,6 +40,7 @@ public class LiquibaseServiceLocatorApplicationListener
 
 	@Override
 	public void onApplicationEvent(ApplicationStartingEvent event) {
+		// <1> 如果存在 CustomResolverServiceLocator 类
 		if (ClassUtils.isPresent("liquibase.servicelocator.CustomResolverServiceLocator",
 				event.getSpringApplication().getClassLoader())) {
 			new LiquibasePresent().replaceServiceLocator();
@@ -52,8 +53,10 @@ public class LiquibaseServiceLocatorApplicationListener
 	private static class LiquibasePresent {
 
 		public void replaceServiceLocator() {
+			// <2> 创建 CustomResolverServiceLocator 对象
 			CustomResolverServiceLocator customResolverServiceLocator = new CustomResolverServiceLocator(
 					new SpringPackageScanClassResolver(logger));
+			// 设置 ServiceLocator 的 `instance` 属性
 			ServiceLocator.setInstance(customResolverServiceLocator);
 		}
 

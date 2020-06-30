@@ -34,6 +34,9 @@ import org.springframework.core.env.SystemEnvironmentPropertySource;
  * {@link OriginAwareSystemEnvironmentPropertySource} that can track the
  * {@link SystemEnvironmentOrigin} for every system environment property.
  *
+ * 实现将 environment 中的 systemEnvironment 对应的 PropertySource 属性源对象，替换成 OriginAwareSystemEnvironmentPropertySource 对象
+ *
+ * todo 这个类的意义是啥？
  * @author Madhura Bhave
  * @since 2.0.0
  */
@@ -51,9 +54,11 @@ public class SystemEnvironmentPropertySourceEnvironmentPostProcessor
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment,
 			SpringApplication application) {
+		// <1> 获得 systemEnvironment 对应的 PropertySource 属性源
 		String sourceName = StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME;
 		PropertySource<?> propertySource = environment.getPropertySources()
 				.get(sourceName);
+		// <2> 将原始的 PropertySource 对象，替换成 OriginAwareSystemEnvironmentPropertySource 对象
 		if (propertySource != null) {
 			replacePropertySource(environment, sourceName, propertySource);
 		}
@@ -64,8 +69,10 @@ public class SystemEnvironmentPropertySourceEnvironmentPostProcessor
 			String sourceName, PropertySource<?> propertySource) {
 		Map<String, Object> originalSource = (Map<String, Object>) propertySource
 				.getSource();
+		// 创建 SystemEnvironmentPropertySource 对象
 		SystemEnvironmentPropertySource source = new OriginAwareSystemEnvironmentPropertySource(
 				sourceName, originalSource);
+		// 进行替换
 		environment.getPropertySources().replace(sourceName, source);
 	}
 
@@ -91,10 +98,13 @@ public class SystemEnvironmentPropertySourceEnvironmentPostProcessor
 
 		@Override
 		public Origin getOrigin(String key) {
+			// 解析 key 对应的 property
 			String property = resolvePropertyName(key);
+			// 判断是否存在 property 对应的值。如果存在，则返回 SystemEnvironmentOrigin 对象
 			if (super.containsProperty(property)) {
 				return new SystemEnvironmentOrigin(property);
 			}
+			// 不存在，则返回 null
 			return null;
 		}
 

@@ -29,6 +29,11 @@ import org.springframework.web.context.support.ServletContextAwareProcessor;
  * can occur before the {@link ServletContext} or {@link ServletConfig} have been
  * initialized.
  *
+ * WebApplicationContextServletContextAwareProcessor 的作用，主要是处理实现 ServletContextAware 接口的 Bean
+ * 在这个处理类，初始化这个 Bean 中的 ServletContext 属性，这样在实现 ServletContextAware 接口的 Bean 中
+ * 就可以拿到 ServletContext 对象了，Spring 中 Aware 接口就是这样实现的。
+ *
+ * todo 没看明白
  * @author Phillip Webb
  */
 public class WebApplicationContextServletContextAwareProcessor

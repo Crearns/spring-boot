@@ -1,10 +1,11 @@
-# PropertySource Loaders
+# PropertySource Loaders 属性文件加载器
 org.springframework.boot.env.PropertySourceLoader=\
 org.springframework.boot.env.PropertiesPropertySourceLoader,\
 org.springframework.boot.env.YamlPropertySourceLoader
 
 # Run Listeners
 org.springframework.boot.SpringApplicationRunListener=\
+# 程序运行过程中所有监听通知都是通过此类来进行回调
 org.springframework.boot.context.event.EventPublishingRunListener
 
 # Error Reporters

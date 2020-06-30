@@ -49,6 +49,7 @@ public class ConfigurationBeanFactoryMetadata implements ApplicationContextAware
 
 	public <A extends Annotation> Map<String, Object> getBeansWithFactoryAnnotation(
 			Class<A> type) {
+		// name 和 bean 的映射
 		Map<String, Object> result = new HashMap<>();
 		for (String name : this.applicationContext.getBeanFactory()
 				.getBeanDefinitionNames()) {
@@ -59,6 +60,7 @@ public class ConfigurationBeanFactoryMetadata implements ApplicationContextAware
 		return result;
 	}
 
+	// 寻找工厂注解
 	public <A extends Annotation> A findFactoryAnnotation(String beanName,
 			Class<A> type) {
 		Method method = findFactoryMethod(beanName);

@@ -90,6 +90,7 @@ public abstract class AutoConfigurationPackages {
 	 * @param packageNames the package names to set
 	 */
 	public static void register(BeanDefinitionRegistry registry, String... packageNames) {
+		// <1> 如果已经存在该 BEAN ，则修改其包（package）属性
 		if (registry.containsBeanDefinition(BEAN)) {
 			BeanDefinition beanDefinition = registry.getBeanDefinition(BEAN);
 			ConstructorArgumentValues constructorArguments = beanDefinition
@@ -97,6 +98,7 @@ public abstract class AutoConfigurationPackages {
 			constructorArguments.addIndexedArgumentValue(0,
 					addBasePackages(constructorArguments, packageNames));
 		}
+		// <2> 如果不存在该 BEAN ，则创建一个 Bean ，并进行注册
 		else {
 			GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
 			beanDefinition.setBeanClass(BasePackages.class);
@@ -141,6 +143,9 @@ public abstract class AutoConfigurationPackages {
 	 */
 	private static final class PackageImport {
 
+		/**
+		 * 包名
+		 */
 		private final String packageName;
 
 		PackageImport(AnnotationMetadata metadata) {

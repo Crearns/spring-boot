@@ -44,14 +44,18 @@ class PropertySourcesDeducer {
 	}
 
 	public PropertySources getPropertySources() {
+		// 获得 PropertySourcesPlaceholderConfigurer 对象
 		PropertySourcesPlaceholderConfigurer configurer = getSinglePropertySourcesPlaceholderConfigurer();
+		// 获得 PropertySource 数组
 		if (configurer != null) {
 			return configurer.getAppliedPropertySources();
 		}
+		// 从 environment 中，获得 MutablePropertySources 对象
 		MutablePropertySources sources = extractEnvironmentPropertySources();
 		if (sources != null) {
 			return sources;
 		}
+		// 获得不到，抛出 IllegalStateException 异常
 		throw new IllegalStateException("Unable to obtain PropertySources from "
 				+ "PropertySourcesPlaceholderConfigurer or Environment");
 	}

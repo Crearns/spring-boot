@@ -45,35 +45,43 @@ public class ConfigurationPropertiesBindingPostProcessorRegistrar
 		}
 		if (!registry.containsBeanDefinition(
 				ConfigurationPropertiesBindingPostProcessor.BEAN_NAME)) {
+			// <1> 注册 ConfigurationPropertiesBindingPostProcessor BeanDefinition
 			registerConfigurationPropertiesBindingPostProcessor(registry);
+			// <2> 注册 ConfigurationBeanFactoryMetadata BeanDefinition
 			registerConfigurationBeanFactoryMetadata(registry);
 		}
 	}
 
 	private void registerConfigurationPropertiesBinder(BeanDefinitionRegistry registry) {
+		// 创建 GenericBeanDefinition 对象
 		GenericBeanDefinition definition = new GenericBeanDefinition();
 		definition.setBeanClass(ConfigurationPropertiesBinder.class);
 		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		definition.getConstructorArgumentValues().addIndexedArgumentValue(0,
 				VALIDATOR_BEAN_NAME);
+		// 注册
 		registry.registerBeanDefinition(ConfigurationPropertiesBinder.BEAN_NAME,
 				definition);
 	}
 
 	private void registerConfigurationPropertiesBindingPostProcessor(
 			BeanDefinitionRegistry registry) {
+		// 创建 GenericBeanDefinition 对象
 		GenericBeanDefinition definition = new GenericBeanDefinition();
 		definition.setBeanClass(ConfigurationPropertiesBindingPostProcessor.class);
 		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		// 注册
 		registry.registerBeanDefinition(
 				ConfigurationPropertiesBindingPostProcessor.BEAN_NAME, definition);
 	}
 
 	private void registerConfigurationBeanFactoryMetadata(
 			BeanDefinitionRegistry registry) {
+		// 创建 GenericBeanDefinition 对象
 		GenericBeanDefinition definition = new GenericBeanDefinition();
 		definition.setBeanClass(ConfigurationBeanFactoryMetadata.class);
 		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		// 注册
 		registry.registerBeanDefinition(ConfigurationBeanFactoryMetadata.BEAN_NAME,
 				definition);
 	}

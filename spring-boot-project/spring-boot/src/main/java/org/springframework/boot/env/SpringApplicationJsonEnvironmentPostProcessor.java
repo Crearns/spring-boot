@@ -44,6 +44,8 @@ import org.springframework.web.context.support.StandardServletEnvironment;
  * adds it as a map property source to the {@link Environment}. The new properties are
  * added with higher priority than the system properties.
  *
+ * 解析 environment 中的 spring.application.json 或 SPRING_APPLICATION_JSON 对应的 JSON 格式的属性值，创建新的 PropertySource 对象，添加到其中。
+ *
  * @author Dave Syer
  * @author Phillip Webb
  * @author Madhura Bhave

@@ -79,22 +79,34 @@ class ConfigurationPropertiesBinder implements ApplicationContextAware {
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
+		// 设置 applicationContext 属性。
 		this.applicationContext = applicationContext;
+		// 创建 org.springframework.boot.context.properties.PropertySourcesDeducer 对象
+		// 然后调用 PropertySourcesDeducer#getPropertySources() 方法，获得 PropertySource 数组
+		// 之后设置给 propertySources 属性。
 		this.propertySources = new PropertySourcesDeducer(applicationContext)
 				.getPropertySources();
+		// 调用 #getConfigurationPropertiesValidator(ApplicationContext applicationContext, String validatorBeanName) 方法
+		// 获得配置的 Validator 对象。
 		this.configurationPropertiesValidator = getConfigurationPropertiesValidator(
 				applicationContext, this.validatorBeanName);
+		// 调用 ConfigurationPropertiesJsr303Validator#isJsr303Present(ApplicationContext applicationContext) 方法
+		// 是否有引入 Jsr 303 Validator 相关的依赖。
 		this.jsr303Present = ConfigurationPropertiesJsr303Validator
 				.isJsr303Present(applicationContext);
 	}
 
 	public <T> BindResult<T> bind(Bindable<T> target) {
+		// <1> 获得 @ConfigurationProperties 注解的属性
 		ConfigurationProperties annotation = target
 				.getAnnotation(ConfigurationProperties.class);
 		Assert.state(annotation != null,
 				() -> "Missing @ConfigurationProperties on " + target);
+		// <2> 获得 Validator 数组
 		List<Validator> validators = getValidators(target);
+		// <3> 获得 BindHandler 对象
 		BindHandler bindHandler = getBindHandler(annotation, validators);
+		// <4> 获得 Binder 对象，然后执行绑定逻辑，处理 `@ConfigurationProperties` 注解的 Bean 的属性的注入
 		return getBinder().bind(annotation.prefix(), target, bindHandler);
 	}
 
@@ -108,18 +120,22 @@ class ConfigurationPropertiesBinder implements ApplicationContextAware {
 
 	private List<Validator> getValidators(Bindable<?> target) {
 		List<Validator> validators = new ArrayList<>(3);
+		// 来源一，configurationPropertiesValidator
 		if (this.configurationPropertiesValidator != null) {
 			validators.add(this.configurationPropertiesValidator);
 		}
+		// 来源二，ConfigurationPropertiesJsr303Validator 对象
 		if (this.jsr303Present && target.getAnnotation(Validated.class) != null) {
 			validators.add(getJsr303Validator());
 		}
+		// 来源三，自己实现了 Validator 接口
 		if (target.getValue() != null && target.getValue().get() instanceof Validator) {
 			validators.add((Validator) target.getValue().get());
 		}
 		return validators;
 	}
 
+	// 返回 ConfigurationPropertiesJsr303Validator 对象
 	private Validator getJsr303Validator() {
 		if (this.jsr303Validator == null) {
 			this.jsr303Validator = new ConfigurationPropertiesJsr303Validator(
@@ -131,17 +147,21 @@ class ConfigurationPropertiesBinder implements ApplicationContextAware {
 	private BindHandler getBindHandler(ConfigurationProperties annotation,
 			List<Validator> validators) {
 		BindHandler handler = new IgnoreTopLevelConverterNotFoundBindHandler();
+		// 如果有 ignoreInvalidFields 属性，进一步包装成 IgnoreErrorsBindHandler 类
 		if (annotation.ignoreInvalidFields()) {
 			handler = new IgnoreErrorsBindHandler(handler);
 		}
+		// 如果否 ignoreUnknownFields 属性，进一步包装成 NoUnboundElementsBindHandler 类
 		if (!annotation.ignoreUnknownFields()) {
 			UnboundElementsSourceFilter filter = new UnboundElementsSourceFilter();
 			handler = new NoUnboundElementsBindHandler(handler, filter);
 		}
+		// <X> 如果 Validator 数组非空，进一步包装成 ValidationBindHandler 对象
 		if (!validators.isEmpty()) {
 			handler = new ValidationBindHandler(handler,
 					validators.toArray(new Validator[0]));
 		}
+		// <Y> 如果有 ConfigurationPropertiesBindHandlerAdvisor 元素，则进一步处理 handler 对象
 		for (ConfigurationPropertiesBindHandlerAdvisor advisor : getBindHandlerAdvisors()) {
 			handler = advisor.apply(handler);
 		}
